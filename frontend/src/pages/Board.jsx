@@ -4,6 +4,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import axios from 'axios';
 import ActivityPanel from '../components/ActivityPanel';
+import '../styles/board.css';
 
 const Board = () => {
   const [tasks, setTasks] = useState([]);
@@ -15,7 +16,7 @@ const Board = () => {
   }, []);
 
   const updateTaskStatus = async (taskId, newStatus) => {
-    const res = await axios.put(`http://localhost:5000/api/tasks/${taskId}`, {
+    const res = await axios.put(`${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`, {
       status: newStatus,
       clientUpdatedAt: new Date().toISOString(),
     }, {
@@ -31,8 +32,8 @@ const Board = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="flex flex-col lg:flex-row gap-4 p-4 bg-gradient-to-r from-indigo-50 to-blue-100 min-h-screen">
-        <div className="flex-1 flex gap-4 overflow-x-auto">
+      <div className="board-container">
+        <div className="board-columns">
           {columns.map(col => (
             <Column
               key={col}
@@ -42,7 +43,7 @@ const Board = () => {
             />
           ))}
         </div>
-        <div className="lg:w-80 w-full">
+        <div className="activity-panel-container">
           <ActivityPanel />
         </div>
       </div>

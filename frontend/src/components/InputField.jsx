@@ -1,14 +1,15 @@
 import React from 'react';
+import '../styles/inputField.css';
 
 const InputField = ({ label, type, name, value, onChange }) => (
-  <div className="mb-4">
-    <label className="block text-sm font-medium mb-1">{label}</label>
+  <div className="input-group">
+    <label className="input-label">{label}</label>
     <input
       type={type}
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-500"
+      className="input-field"
       required
     />
   </div>
