@@ -35,6 +35,9 @@ const Login = () => {
         <button type="submit" className="login-button">
           Log In
         </button>
+        <p className="auth-switch-text">
+          Don't have an account? <a href="/register" className="auth-link">Register here</a>
+        </p>
       </form>
     </div>
   );

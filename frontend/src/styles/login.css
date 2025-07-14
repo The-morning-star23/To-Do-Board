@@ -45,3 +45,20 @@
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
+
+.auth-switch-text {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  color: #444;
+}
+
+.auth-link {
+  color: #2563eb; /* Indigo/blue */
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}

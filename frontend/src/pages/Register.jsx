@@ -35,6 +35,9 @@ const Register = () => {
         <button type="submit" className="register-button">
           Sign Up
         </button>
+        <p className="auth-switch-text">
+          Already have an account? <a href="/login" className="auth-link">Login here</a>
+        </p>
       </form>
     </div>
   );
