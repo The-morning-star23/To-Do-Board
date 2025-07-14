@@ -1,30 +1,37 @@
 const app = require('./app');
 const http = require('http');
 const { Server } = require('socket.io');
-const { connectMongo } = require('./config/db'); // ✅ Import DB connector
+const { connectMongo } = require('./config/db'); // ✅ Correct path assumed
 
-const server = http.createServer(app);
+const startServer = async () => {
+  try {
+    await connectMongo(); // ✅ Ensure MongoDB connects before starting server
 
-// ✅ Connect to MongoDB before starting the server
-connectMongo();
+    const server = http.createServer(app);
 
-const io = new Server(server, {
-  cors: {
-    origin: '*', // You can restrict this in production
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
+    const io = new Server(server, {
+      cors: {
+        origin: '*', // Restrict in production
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+      }
+    });
+
+    app.set('io', io);
+
+    io.on('connection', (socket) => {
+      console.log('User connected:', socket.id);
+
+      socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+      });
+    });
+
+    const PORT = process.env.PORT || 5000;
+    server.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+  } catch (err) {
+    console.error('❌ Failed to start server:', err.message);
+    process.exit(1);
   }
-});
+};
 
-// Attach to app so controllers can access
-app.set('io', io);
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-  });
-});
-
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+startServer(); // 🚀 Run the async startup
