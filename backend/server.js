@@ -1,12 +1,16 @@
 const app = require('./app');
 const http = require('http');
 const { Server } = require('socket.io');
+const { connectMongo } = require('./db'); // ✅ Import DB connector
 
 const server = http.createServer(app);
 
+// ✅ Connect to MongoDB before starting the server
+connectMongo();
+
 const io = new Server(server, {
   cors: {
-    origin: '*', // Update to frontend origin in production
+    origin: '*', // You can restrict this in production
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
@@ -14,7 +18,6 @@ const io = new Server(server, {
 // Attach to app so controllers can access
 app.set('io', io);
 
-// Optional: log connections
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
