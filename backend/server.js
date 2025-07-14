@@ -1,7 +1,7 @@
 const app = require('./app');
 const http = require('http');
 const { Server } = require('socket.io');
-const { connectMongo } = require('./db'); // ✅ Import DB connector
+const { connectMongo } = require('./config/db'); // ✅ Import DB connector
 
 const server = http.createServer(app);
 
