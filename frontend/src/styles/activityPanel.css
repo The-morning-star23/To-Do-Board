@@ -6,8 +6,16 @@
   padding: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
-  height: 80vh;
+  height: 90vh;
   overflow-y: auto;
+  position: sticky;
+  top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .activity-panel {
+    width: 20rem;
+  }
 }
 
 .activity-title {

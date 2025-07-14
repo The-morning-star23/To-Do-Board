@@ -18,9 +18,13 @@ const Column = ({ title, tasks, onDropTask }) => {
     <div ref={drop} className="column">
       <h2 className="column-title">{title}</h2>
       <div className="column-tasks">
-        {tasks.map((task) => (
-          <TaskCard key={task._id} task={task} />
-        ))}
+        {tasks.length === 0 ? (
+          <div className="empty-column-msg">No tasks</div>
+        ) : (
+          tasks.map((task) => (
+            <TaskCard key={task._id} task={task} />
+          ))
+        )}
       </div>
     </div>
   );

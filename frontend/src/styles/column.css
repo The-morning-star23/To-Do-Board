@@ -32,3 +32,11 @@
   overflow-y: auto;
   flex-grow: 1;
 }
+
+.empty-column-msg {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+  padding: 1rem;
+}
+

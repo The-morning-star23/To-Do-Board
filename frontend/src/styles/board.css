@@ -5,6 +5,7 @@
   padding: 1rem;
   background: linear-gradient(to right, #eef2ff, #dbeafe);
   min-height: 100vh;
+  align-items: flex-start;
 }
 
 @media (min-width: 1024px) {
