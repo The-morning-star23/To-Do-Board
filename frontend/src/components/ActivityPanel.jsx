@@ -7,7 +7,7 @@ const ActivityPanel = () => {
 
   useEffect(() => {
     // Initial fetch
-    axios.get('http://localhost:5000/api/actions?limit=20', {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/actions?limit=20`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).then(res => setLogs(res.data.reverse())); // newest last
 

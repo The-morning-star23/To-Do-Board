@@ -9,7 +9,7 @@ const Board = () => {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/tasks', {
+    axios.get(`${process.env.REACT_APP_API_URL}/api/tasks`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).then(res => setTasks(res.data));
   }, []);
