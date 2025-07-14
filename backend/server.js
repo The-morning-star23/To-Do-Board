@@ -11,7 +11,7 @@ const startServer = async () => {
 
     const io = new Server(server, {
       cors: {
-        origin: 'https://to-do-board-navy.vercel.app/', // Restrict in production
+        origin: 'https://to-do-board-navy.vercel.app', // Restrict in production
         methods: ['GET', 'POST', 'PUT', 'DELETE']
       }
     });
