@@ -1,4 +1,8 @@
 import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Board from './pages/Board';
 import socket from './socket';
 
 function App() {
@@ -7,37 +11,23 @@ function App() {
       console.log('Connected to WebSocket:', socket.id);
     });
 
-    // Task events
-    socket.on('taskCreated', (task) => {
-      console.log('Task created:', task);
-      // TODO: Add to state
-    });
+    socket.on('taskCreated', task => console.log('Task created:', task));
+    socket.on('taskUpdated', task => console.log('Task updated:', task));
+    socket.on('taskDeleted', ({ taskId }) => console.log('Task deleted:', taskId));
+    socket.on('actionLogged', log => console.log('Action logged:', log));
 
-    socket.on('taskUpdated', (task) => {
-      console.log('Task updated:', task);
-      // TODO: Update in state
-    });
-
-    socket.on('taskDeleted', ({ taskId }) => {
-      console.log('Task deleted:', taskId);
-      // TODO: Remove from state
-    });
-
-    // Activity log
-    socket.on('actionLogged', (log) => {
-      console.log('Action logged:', log);
-      // TODO: Add to log panel
-    });
-
-    return () => {
-      socket.off(); // Cleanup
-    };
+    return () => socket.off();
   }, []);
 
   return (
-    <div>
-      {/* Your Routes / Kanban Board / etc. */}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/board" element={<Board />} />
+      </Routes>
+    </Router>
   );
 }
 
