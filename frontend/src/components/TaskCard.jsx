@@ -4,7 +4,7 @@ import { ItemTypes } from '../dnd/ItemTypes';
 import '../styles/taskCard.css';
 import axios from 'axios';
 
-const TaskCard = ({ task, onSmartAssign }) => {
+const TaskCard = ({ task, onEdit, onDelete, onSmartAssign }) => {
   const [{ isDragging }, drag] = useDrag({
     type: ItemTypes.TASK,
     item: { id: task._id, status: task.status },
@@ -24,7 +24,7 @@ const TaskCard = ({ task, onSmartAssign }) => {
           },
         }
       );
-      onSmartAssign(task._id, res.data.task); // callback to update state
+      onSmartAssign(task._id, res.data.task);
     } catch (err) {
       alert(err.response?.data?.message || 'Smart assign failed');
     }
@@ -32,7 +32,11 @@ const TaskCard = ({ task, onSmartAssign }) => {
 
   return (
     <div ref={drag} className={`task-card ${isDragging ? 'dragging' : ''}`}>
-      <h4 className="task-title">{task.title}</h4>
+      <div className="task-header">
+        <h4 className="task-title">{task.title}</h4>
+        <button className="task-delete" onClick={() => onDelete(task._id)}>✕</button>
+      </div>
+
       <p className="task-desc">{task.description}</p>
       <div className="task-priority">Priority: {task.priority}</div>
       {task.assignedTo && (
@@ -40,9 +44,8 @@ const TaskCard = ({ task, onSmartAssign }) => {
       )}
 
       <div className="task-actions">
-        <button className="assign-btn" onClick={handleSmartAssign}>
-          Smart Assign
-        </button>
+        <button className="assign-btn" onClick={handleSmartAssign}>Smart Assign</button>
+        <button className="edit-btn" onClick={() => onEdit(task)}>Edit</button>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { ItemTypes } from '../dnd/ItemTypes';
 import TaskCard from './TaskCard';
 import '../styles/column.css';
 
-const Column = ({ title, tasks, onDropTask, onSmartAssign }) => {
+const Column = ({ title, tasks, onDropTask, onSmartAssign, onEditTask, onDeleteTask }) => {
   const [, drop] = useDrop({
     accept: ItemTypes.TASK,
     drop: (item) => {
@@ -26,6 +26,8 @@ const Column = ({ title, tasks, onDropTask, onSmartAssign }) => {
               key={task._id}
               task={task}
               onSmartAssign={onSmartAssign}
+              onEdit={onEditTask}
+              onDelete={onDeleteTask}
             />
           ))
         )}

@@ -70,6 +70,23 @@ const Board = () => {
     }
   };
 
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        }
+      );
+      setTasks(prev => prev.filter(t => t._id !== taskId));
+    } catch (err) {
+    alert(err.response?.data?.message || 'Failed to delete task');
+    }
+  };
+
+
   const handleSmartAssign = async (taskId) => {
     try {
       const res = await axios.post(
@@ -101,7 +118,11 @@ const Board = () => {
               tasks={tasks.filter(t => t.status === col)}
               onDropTask={updateTaskStatus}
               onSmartAssign={handleSmartAssign}
-              onEditTask={setEditingTask}
+              onEditTask={(task) => {
+                setEditingTask(task);
+                setModalOpen(true);
+              }}
+              onDeleteTask={handleDeleteTask}
             />
           ))}
         </div>
