@@ -11,13 +11,14 @@ const { smartAssign } = require('../controllers/taskController');
 const { validateTask } = require('../validators/taskValidator');
 const { handleValidation } = require('../middleware/validate');
 
-router.post('/', protect, createTask);
 router.get('/', protect, getAllTasks);
-router.put('/:id', protect, updateTask);
-router.delete('/:id', protect, deleteTask);
-router.post('/:id/smart-assign', protect, smartAssign);
+
 router.post('/', protect, validateTask, handleValidation, createTask);
+
+router.put('/:id/smart-assign', protect, smartAssign);
+
 router.put('/:id', protect, validateTask, handleValidation, updateTask);
 
+router.delete('/:id', protect, deleteTask);
 
 module.exports = router;
