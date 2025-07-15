@@ -89,7 +89,7 @@ const Board = () => {
 
   const handleSmartAssign = async (taskId) => {
     try {
-      const res = await axios.post(
+      const res = await axios.put(
         `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}/smart-assign`,
         {},
         {
