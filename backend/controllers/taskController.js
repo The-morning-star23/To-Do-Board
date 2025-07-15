@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
+const ActionLog = require('../models/ActionLog');
 const logAction = require('../utils/logAction');
 
 exports.createTask = async (req, res) => {
@@ -26,15 +27,20 @@ exports.createTask = async (req, res) => {
       createdBy: userId,
     });
 
-    const logEntry = await logAction({
+    await logAction({
       userId,
       taskId: task._id,
       actionType: 'CREATE',
-      message: `Created task "${task.title}"`
+      message: `Created task "${task.title}"`,
     });
 
+    const populatedLog = await ActionLog.findOne({ task: task._id, actionType: 'CREATE' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'username')
+      .populate('task', 'title');
+
     io.emit('taskCreated', task);
-    io.emit('actionLogged', logEntry);
+    io.emit('actionLogged', populatedLog);
 
     res.status(201).json(task);
   } catch (err) {
@@ -68,7 +74,7 @@ exports.updateTask = async (req, res) => {
       return res.status(409).json({
         message: 'Conflict detected. The task has been modified by another user.',
         serverVersion: task,
-        clientVersion: req.body
+        clientVersion: req.body,
       });
     }
 
@@ -81,15 +87,20 @@ exports.updateTask = async (req, res) => {
 
     await task.save();
 
-    const logEntry = await logAction({
+    await logAction({
       userId: req.user,
       taskId: task._id,
       actionType: 'UPDATE',
-      message: `Updated task "${task.title}"`
+      message: `Updated task "${task.title}"`,
     });
 
+    const populatedLog = await ActionLog.findOne({ task: task._id, actionType: 'UPDATE' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'username')
+      .populate('task', 'title');
+
     io.emit('taskUpdated', task);
-    io.emit('actionLogged', logEntry);
+    io.emit('actionLogged', populatedLog);
 
     res.status(200).json(task);
   } catch (err) {
@@ -103,15 +114,20 @@ exports.deleteTask = async (req, res) => {
   try {
     const deleted = await Task.findByIdAndDelete(req.params.id);
 
-    const logEntry = await logAction({
+    await logAction({
       userId: req.user,
       taskId: req.params.id,
       actionType: 'DELETE',
-      message: `Deleted task "${deleted?.title || 'Untitled'}"`
+      message: `Deleted task "${deleted?.title || 'Untitled'}"`,
     });
 
+    const populatedLog = await ActionLog.findOne({ task: req.params.id, actionType: 'DELETE' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'username')
+      .populate('task', 'title');
+
     io.emit('taskDeleted', { taskId: req.params.id });
-    io.emit('actionLogged', logEntry);
+    io.emit('actionLogged', populatedLog);
 
     res.status(204).end();
   } catch (err) {
@@ -132,7 +148,7 @@ exports.smartAssign = async (req, res) => {
       users.map(async (user) => {
         const activeTaskCount = await Task.countDocuments({
           assignedTo: user._id,
-          status: { $in: ['Todo', 'In Progress'] }
+          status: { $in: ['Todo', 'In Progress'] },
         });
         return { user, count: activeTaskCount };
       })
@@ -146,19 +162,24 @@ exports.smartAssign = async (req, res) => {
       { new: true }
     ).populate('assignedTo', 'username email');
 
-    const logEntry = await logAction({
+    await logAction({
       userId: req.user,
       taskId: updatedTask._id,
       actionType: 'ASSIGN',
-      message: `Smart assigned task to ${best.user.username}`
+      message: `Smart assigned task to ${best.user.username}`,
     });
 
+    const populatedLog = await ActionLog.findOne({ task: updatedTask._id, actionType: 'ASSIGN' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'username')
+      .populate('task', 'title');
+
     io.emit('taskUpdated', updatedTask);
-    io.emit('actionLogged', logEntry);
+    io.emit('actionLogged', populatedLog);
 
     res.status(200).json({
       message: `Task assigned to ${best.user.username}`,
-      task: updatedTask
+      task: updatedTask,
     });
   } catch (err) {
     res.status(500).json({ message: 'Smart assign failed', error: err.message });

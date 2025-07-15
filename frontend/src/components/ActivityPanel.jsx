@@ -11,13 +11,16 @@ const ActivityPanel = () => {
       .get(`${process.env.REACT_APP_API_URL}/api/actions?limit=20`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       })
-      .then((res) => setLogs(res.data.reverse()));
+      .then((res) => setLogs(res.data.reverse()))
+      .catch((err) => console.error('Failed to fetch logs:', err));
   };
 
   useEffect(() => {
     fetchLogs();
 
     socket.on('actionLogged', (newLog) => {
+      if (!newLog || typeof newLog !== 'object') return; // skip null/invalid logs
+
       setLogs((prev) => {
         const updated = [...prev, newLog];
         return updated.slice(-20);
@@ -50,12 +53,14 @@ const ActivityPanel = () => {
       </div>
       <ul className="activity-list">
         {logs.map((log) => (
-          <li key={log._id} className="activity-item">
+          <li key={log._id || Math.random()} className="activity-item">
             <div className="activity-message">
-              {log.username || 'Someone'} {log.message}
+              {(log?.user?.username || 'Someone')} {log?.message || ''}
             </div>
             <div className="activity-timestamp">
-              {new Date(log.createdAt).toLocaleString()}
+              {log?.createdAt
+                ? new Date(log.createdAt).toLocaleString()
+                : 'Unknown time'}
             </div>
           </li>
         ))}
