@@ -41,3 +41,42 @@
   color: #4f46e5;
   font-weight: 500;
 }
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.task-delete {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #dc2626;
+  cursor: pointer;
+}
+
+.task-delete:hover {
+  color: #b91c1c;
+}
+
+.task-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.assign-btn {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.assign-btn:hover {
+  background-color: #4338ca;
+}
