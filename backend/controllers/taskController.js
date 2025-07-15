@@ -26,7 +26,7 @@ exports.createTask = async (req, res) => {
       createdBy: userId,
     });
 
-    await logAction({
+    const logEntry = await logAction({
       userId,
       taskId: task._id,
       actionType: 'CREATE',
@@ -34,12 +34,7 @@ exports.createTask = async (req, res) => {
     });
 
     io.emit('taskCreated', task);
-    io.emit('actionLogged', {
-      user: userId,
-      task,
-      actionType: 'CREATE',
-      message: `Created task "${task.title}"`
-    });
+    io.emit('actionLogged', logEntry);
 
     res.status(201).json(task);
   } catch (err) {
@@ -77,10 +72,16 @@ exports.updateTask = async (req, res) => {
       });
     }
 
-    Object.assign(task, req.body);
+    const { title, description, status, priority, assignedTo } = req.body;
+    if (title) task.title = title;
+    if (description) task.description = description;
+    if (status) task.status = status;
+    if (priority) task.priority = priority;
+    if (assignedTo) task.assignedTo = assignedTo;
+
     await task.save();
 
-    await logAction({
+    const logEntry = await logAction({
       userId: req.user,
       taskId: task._id,
       actionType: 'UPDATE',
@@ -88,12 +89,7 @@ exports.updateTask = async (req, res) => {
     });
 
     io.emit('taskUpdated', task);
-    io.emit('actionLogged', {
-      user: req.user,
-      task,
-      actionType: 'UPDATE',
-      message: `Updated task "${task.title}"`
-    });
+    io.emit('actionLogged', logEntry);
 
     res.status(200).json(task);
   } catch (err) {
@@ -107,20 +103,15 @@ exports.deleteTask = async (req, res) => {
   try {
     const deleted = await Task.findByIdAndDelete(req.params.id);
 
-    await logAction({
+    const logEntry = await logAction({
       userId: req.user,
       taskId: req.params.id,
       actionType: 'DELETE',
-      message: `Deleted a task`
+      message: `Deleted task "${deleted?.title || 'Untitled'}"`
     });
 
     io.emit('taskDeleted', { taskId: req.params.id });
-    io.emit('actionLogged', {
-      user: req.user,
-      task: deleted,
-      actionType: 'DELETE',
-      message: `Deleted task "${deleted?.title || 'Untitled'}"`
-    });
+    io.emit('actionLogged', logEntry);
 
     res.status(204).end();
   } catch (err) {
@@ -153,9 +144,9 @@ exports.smartAssign = async (req, res) => {
       taskId,
       { assignedTo: best.user._id },
       { new: true }
-    );
+    ).populate('assignedTo', 'username email');
 
-    await logAction({
+    const logEntry = await logAction({
       userId: req.user,
       taskId: updatedTask._id,
       actionType: 'ASSIGN',
@@ -163,12 +154,7 @@ exports.smartAssign = async (req, res) => {
     });
 
     io.emit('taskUpdated', updatedTask);
-    io.emit('actionLogged', {
-      user: req.user,
-      task: updatedTask,
-      actionType: 'ASSIGN',
-      message: `Smart assigned task to ${best.user.username}`
-    });
+    io.emit('actionLogged', logEntry);
 
     res.status(200).json({
       message: `Task assigned to ${best.user.username}`,
