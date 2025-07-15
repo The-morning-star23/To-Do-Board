@@ -15,7 +15,7 @@ router.post('/', protect, createTask);
 router.get('/', protect, getAllTasks);
 router.put('/:id', protect, updateTask);
 router.delete('/:id', protect, deleteTask);
-router.put('/:id/smart-assign', protect, smartAssign);
+router.post('/:id/smart-assign', protect, smartAssign);
 router.post('/', protect, validateTask, handleValidation, createTask);
 router.put('/:id', protect, validateTask, handleValidation, updateTask);
 

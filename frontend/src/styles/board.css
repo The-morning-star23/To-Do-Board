@@ -13,6 +13,8 @@
   padding: 16px;
   overflow-x: auto;
   overflow-y: auto;
+  z-index: 0; /* Ensure it's below the button */
+  position: relative;
 }
 
 .activity-panel-container {
@@ -21,10 +23,11 @@
   border-left: 1px solid #e5e7eb;
   overflow-y: auto;
   z-index: 1;
+  position: relative;
 }
 
 .add-task-button {
-  position: fixed; /* FIXED instead of absolute */
+  position: fixed;
   bottom: 24px;
   right: 24px;
   padding: 10px 16px;
@@ -34,7 +37,7 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  z-index: 1000; /* HIGH z-index to stay on top */
+  z-index: 9999; /* Ensure it's above everything */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 

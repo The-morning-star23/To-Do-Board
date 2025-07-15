@@ -49,3 +49,24 @@
   color: #6b7280; /* Gray-500 */
   margin-top: 4px;
 }
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.clear-log-btn {
+  background-color: #dc2626;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.clear-log-btn:hover {
+  background-color: #b91c1c;
+}

@@ -6,12 +6,16 @@ import '../styles/activityPanel.css';
 const ActivityPanel = () => {
   const [logs, setLogs] = useState([]);
 
-  useEffect(() => {
+  const fetchLogs = () => {
     axios
       .get(`${process.env.REACT_APP_API_URL}/api/actions?limit=20`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       })
       .then((res) => setLogs(res.data.reverse()));
+  };
+
+  useEffect(() => {
+    fetchLogs();
 
     socket.on('actionLogged', (newLog) => {
       setLogs((prev) => {
@@ -23,9 +27,27 @@ const ActivityPanel = () => {
     return () => socket.off('actionLogged');
   }, []);
 
+  const handleClearLogs = async () => {
+    if (!window.confirm('Are you sure you want to clear all logs?')) return;
+
+    try {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/actions`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      });
+      setLogs([]);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to clear logs');
+    }
+  };
+
   return (
     <div className="activity-panel">
-      <h3 className="activity-title">Activity Log</h3>
+      <div className="activity-header">
+        <h3 className="activity-title">Activity Log</h3>
+        <button className="clear-log-btn" onClick={handleClearLogs}>
+          Clear Logs
+        </button>
+      </div>
       <ul className="activity-list">
         {logs.map((log) => (
           <li key={log._id} className="activity-item">
