@@ -5,6 +5,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import axios from 'axios';
 import ActivityPanel from '../components/ActivityPanel';
 import TaskModal from '../components/TaskModal';
+import Navbar from '../components/Navbar';
 import '../styles/board.css';
 
 const Board = () => {
@@ -82,10 +83,9 @@ const Board = () => {
       );
       setTasks(prev => prev.filter(t => t._id !== taskId));
     } catch (err) {
-    alert(err.response?.data?.message || 'Failed to delete task');
+      alert(err.response?.data?.message || 'Failed to delete task');
     }
   };
-
 
   const handleSmartAssign = async (taskId) => {
     try {
@@ -109,6 +109,7 @@ const Board = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
+      <Navbar /> {/* ✅ Add logout-enabled header */}
       <div className="board-container">
         <div className="board-columns">
           {columns.map(col => (
