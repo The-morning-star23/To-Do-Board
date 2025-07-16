@@ -7,15 +7,12 @@ import ActivityPanel from '../components/ActivityPanel';
 import TaskModal from '../components/TaskModal';
 import Navbar from '../components/Navbar';
 import '../styles/board.css';
+import socket from '../socket';
 
 const Board = () => {
   const [tasks, setTasks] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
 
   const fetchTasks = async () => {
     const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/tasks`, {
@@ -24,40 +21,92 @@ const Board = () => {
     setTasks(res.data);
   };
 
+  useEffect(() => {
+    fetchTasks();
+
+    socket.on('taskCreated', (newTask) => {
+      setTasks((prev) => {
+        const exists = prev.find((t) => t._id === newTask._id);
+        if (exists) return prev;
+        return [...prev, newTask];
+      });
+    });
+
+    socket.on('taskUpdated', (updatedTask) => {
+      setTasks((prev) =>
+        prev.map((t) => (t._id === updatedTask._id ? updatedTask : t))
+      );
+    });
+
+    socket.on('taskDeleted', ({ taskId }) => {
+      setTasks((prev) => prev.filter((t) => t._id !== taskId));
+    });
+
+    return () => {
+      socket.off('taskCreated');
+      socket.off('taskUpdated');
+      socket.off('taskDeleted');
+    };
+  }, []);
+
   const updateTaskStatus = async (taskId, newStatus) => {
-    await axios.put(
-      `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
-      {
-        status: newStatus,
-        clientUpdatedAt: new Date().toISOString(),
-      },
-      {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      }
-    );
+    try {
+      const res = await axios.put(
+        `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
+        {
+          status: newStatus,
+          clientUpdatedAt:
+            tasks.find((t) => t._id === taskId)?.updatedAt ||
+            new Date().toISOString(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      // Immediate local update (WebSocket will also update all tabs)
+      setTasks((prev) =>
+        prev.map((t) => (t._id === taskId ? { ...t, ...res.data } : t))
+      );
+    } catch (err) {
+      console.error('Status update failed:', err);
+    }
   };
 
   const handleTaskSubmit = async (formData, taskId) => {
     try {
       if (taskId) {
-        await axios.put(
+        const res = await axios.put(
           `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
           {
             ...formData,
-            clientUpdatedAt: new Date().toISOString(),
+            clientUpdatedAt:
+              tasks.find((t) => t._id === taskId)?.updatedAt ||
+              new Date().toISOString(),
           },
           {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
           }
         );
+
+        setTasks((prev) =>
+          prev.map((t) => (t._id === taskId ? { ...t, ...res.data } : t))
+        );
       } else {
-        await axios.post(
+        const res = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/tasks`,
           formData,
           {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
           }
         );
+        setTasks((prev) => [...prev, res.data]);
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to save task');
@@ -71,9 +120,12 @@ const Board = () => {
       await axios.delete(
         `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
         }
       );
+      setTasks((prev) => prev.filter((t) => t._id !== taskId));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete task');
     }
@@ -81,12 +133,19 @@ const Board = () => {
 
   const handleSmartAssign = async (taskId) => {
     try {
-      await axios.put(
+      const res = await axios.put(
         `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}/smart-assign`,
         {},
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
         }
+      );
+
+      const updated = res.data.task;
+      setTasks((prev) =>
+        prev.map((t) => (t._id === updated._id ? { ...t, ...updated } : t))
       );
     } catch (err) {
       alert(err.response?.data?.message || 'Smart assign failed');
@@ -100,11 +159,11 @@ const Board = () => {
       <Navbar />
       <div className="board-container">
         <div className="board-columns">
-          {columns.map(col => (
+          {columns.map((col) => (
             <Column
               key={col}
               title={col}
-              tasks={tasks.filter(t => t.status === col)}
+              tasks={tasks.filter((t) => t.status === col)}
               onDropTask={updateTaskStatus}
               onSmartAssign={handleSmartAssign}
               onEditTask={(task) => {
@@ -115,6 +174,7 @@ const Board = () => {
             />
           ))}
         </div>
+
         <div className="activity-panel-container">
           <ActivityPanel />
         </div>
