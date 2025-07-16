@@ -30,7 +30,7 @@ exports.createTask = async (req, res) => {
       userId,
       taskId: task._id,
       actionType: 'CREATE',
-      message: `Created task "${task.title}"`
+      message: `Created task "${task.title}"`,
     });
 
     io.emit('taskCreated', task);
@@ -85,7 +85,7 @@ exports.updateTask = async (req, res) => {
       userId: req.user,
       taskId: task._id,
       actionType: 'UPDATE',
-      message: `Updated task "${task.title}"`
+      message: `Updated task "${task.title}"`,
     });
 
     io.emit('taskUpdated', task);
@@ -107,7 +107,7 @@ exports.deleteTask = async (req, res) => {
       userId: req.user,
       taskId: req.params.id,
       actionType: 'DELETE',
-      message: `Deleted task "${deleted?.title || 'Untitled'}"`
+      message: `Deleted task "${deleted?.title || 'Untitled'}"`,
     });
 
     io.emit('taskDeleted', { taskId: req.params.id });
@@ -126,7 +126,8 @@ exports.smartAssign = async (req, res) => {
     const taskId = req.params.id;
 
     const users = await User.find();
-    if (users.length === 0) return res.status(400).json({ message: 'No users found' });
+    if (users.length === 0)
+      return res.status(400).json({ message: 'No users found' });
 
     const counts = await Promise.all(
       users.map(async (user) => {
@@ -138,7 +139,9 @@ exports.smartAssign = async (req, res) => {
       })
     );
 
-    const best = counts.reduce((min, curr) => (curr.count < min.count ? curr : min), counts[0]);
+    const best = counts.reduce((min, curr) =>
+      curr.count < min.count ? curr : min
+    );
 
     const updatedTask = await Task.findByIdAndUpdate(
       taskId,
@@ -150,7 +153,7 @@ exports.smartAssign = async (req, res) => {
       userId: req.user,
       taskId: updatedTask._id,
       actionType: 'ASSIGN',
-      message: `Smart assigned task to ${best.user.username}`
+      message: `Smart assigned task to ${best.user.username}`,
     });
 
     io.emit('taskUpdated', updatedTask);
@@ -158,9 +161,11 @@ exports.smartAssign = async (req, res) => {
 
     res.status(200).json({
       message: `Task assigned to ${best.user.username}`,
-      task: updatedTask
+      task: updatedTask,
     });
   } catch (err) {
-    res.status(500).json({ message: 'Smart assign failed', error: err.message });
+    res
+      .status(500)
+      .json({ message: 'Smart assign failed', error: err.message });
   }
 };
