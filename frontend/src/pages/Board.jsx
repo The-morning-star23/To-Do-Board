@@ -6,13 +6,16 @@ import axios from 'axios';
 import ActivityPanel from '../components/ActivityPanel';
 import TaskModal from '../components/TaskModal';
 import Navbar from '../components/Navbar';
-import socket from '../socket';
 import '../styles/board.css';
 
 const Board = () => {
   const [tasks, setTasks] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
 
   const fetchTasks = async () => {
     const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/tasks`, {
@@ -21,29 +24,8 @@ const Board = () => {
     setTasks(res.data);
   };
 
-  useEffect(() => {
-    fetchTasks();
-
-    // Real-time listeners
-    const onCreated = task => setTasks(prev => [...prev, task]);
-    const onUpdated = task =>
-      setTasks(prev => prev.map(t => (t._id === task._id ? task : t)));
-    const onDeleted = ({ taskId }) =>
-      setTasks(prev => prev.filter(t => t._id !== taskId));
-
-    socket.on('taskCreated', onCreated);
-    socket.on('taskUpdated', onUpdated);
-    socket.on('taskDeleted', onDeleted);
-
-    return () => {
-      socket.off('taskCreated', onCreated);
-      socket.off('taskUpdated', onUpdated);
-      socket.off('taskDeleted', onDeleted);
-    };
-  }, []);
-
   const updateTaskStatus = async (taskId, newStatus) => {
-    const res = await axios.put(
+    await axios.put(
       `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
       {
         status: newStatus,
@@ -53,15 +35,12 @@ const Board = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       }
     );
-    setTasks(prev =>
-      prev.map(t => (t._id === taskId ? { ...t, ...res.data } : t))
-    );
   };
 
   const handleTaskSubmit = async (formData, taskId) => {
     try {
       if (taskId) {
-        const res = await axios.put(
+        await axios.put(
           `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}`,
           {
             ...formData,
@@ -71,18 +50,14 @@ const Board = () => {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           }
         );
-        setTasks(prev =>
-          prev.map(t => (t._id === taskId ? { ...t, ...res.data } : t))
-        );
       } else {
-        const res = await axios.post(
+        await axios.post(
           `${process.env.REACT_APP_API_URL}/api/tasks`,
           formData,
           {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
           }
         );
-        setTasks(prev => [...prev, res.data]);
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to save task');
@@ -99,7 +74,6 @@ const Board = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         }
       );
-      setTasks(prev => prev.filter(t => t._id !== taskId));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete task');
     }
@@ -107,16 +81,12 @@ const Board = () => {
 
   const handleSmartAssign = async (taskId) => {
     try {
-      const res = await axios.put(
+      await axios.put(
         `${process.env.REACT_APP_API_URL}/api/tasks/${taskId}/smart-assign`,
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         }
-      );
-      const updated = res.data.task;
-      setTasks(prev =>
-        prev.map(t => (t._id === updated._id ? { ...t, ...updated } : t))
       );
     } catch (err) {
       alert(err.response?.data?.message || 'Smart assign failed');
