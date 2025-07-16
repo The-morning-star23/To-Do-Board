@@ -7,16 +7,25 @@ import socket from './socket';
 
 function App() {
   useEffect(() => {
-    socket.on('connect', () => {
-      console.log('Connected to WebSocket:', socket.id);
-    });
+    const onConnect = () => console.log('Connected to WebSocket:', socket.id);
+    const onTaskCreated = (task) => console.log('Task created:', task);
+    const onTaskUpdated = (task) => console.log('Task updated:', task);
+    const onTaskDeleted = ({ taskId }) => console.log('Task deleted:', taskId);
+    const onActionLogged = (log) => console.log('Action logged:', log);
 
-    socket.on('taskCreated', task => console.log('Task created:', task));
-    socket.on('taskUpdated', task => console.log('Task updated:', task));
-    socket.on('taskDeleted', ({ taskId }) => console.log('Task deleted:', taskId));
-    socket.on('actionLogged', log => console.log('Action logged:', log));
+    socket.on('connect', onConnect);
+    socket.on('taskCreated', onTaskCreated);
+    socket.on('taskUpdated', onTaskUpdated);
+    socket.on('taskDeleted', onTaskDeleted);
+    socket.on('actionLogged', onActionLogged);
 
-    return () => socket.off();
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('taskCreated', onTaskCreated);
+      socket.off('taskUpdated', onTaskUpdated);
+      socket.off('taskDeleted', onTaskDeleted);
+      socket.off('actionLogged', onActionLogged);
+    };
   }, []);
 
   return (

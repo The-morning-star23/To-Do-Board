@@ -6,6 +6,7 @@ import axios from 'axios';
 import ActivityPanel from '../components/ActivityPanel';
 import TaskModal from '../components/TaskModal';
 import Navbar from '../components/Navbar';
+import socket from '../socket';
 import '../styles/board.css';
 
 const Board = () => {
@@ -13,16 +14,33 @@ const Board = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
   const fetchTasks = async () => {
     const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/tasks`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
     setTasks(res.data);
   };
+
+  useEffect(() => {
+    fetchTasks();
+
+    // Real-time listeners
+    const onCreated = task => setTasks(prev => [...prev, task]);
+    const onUpdated = task =>
+      setTasks(prev => prev.map(t => (t._id === task._id ? task : t)));
+    const onDeleted = ({ taskId }) =>
+      setTasks(prev => prev.filter(t => t._id !== taskId));
+
+    socket.on('taskCreated', onCreated);
+    socket.on('taskUpdated', onUpdated);
+    socket.on('taskDeleted', onDeleted);
+
+    return () => {
+      socket.off('taskCreated', onCreated);
+      socket.off('taskUpdated', onUpdated);
+      socket.off('taskDeleted', onDeleted);
+    };
+  }, []);
 
   const updateTaskStatus = async (taskId, newStatus) => {
     const res = await axios.put(
@@ -109,7 +127,7 @@ const Board = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Navbar /> {/* ✅ Add logout-enabled header */}
+      <Navbar />
       <div className="board-container">
         <div className="board-columns">
           {columns.map(col => (

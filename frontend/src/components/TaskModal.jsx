@@ -70,7 +70,7 @@ const TaskModal = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     }, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).then(() => {
-      onSubmit();
+      onSubmit(form);
       onClose();
     });
   };
@@ -82,7 +82,7 @@ const TaskModal = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     }, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).then(() => {
-      onSubmit();
+      onSubmit(form);
       onClose();
     });
   };
