@@ -40,20 +40,20 @@ const TaskModal = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     }
 
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/tasks/${initialData._id}`, {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/tasks/${initialData._id}`, {
         ...form,
         clientUpdatedAt: initialData.updatedAt,
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 
-      onSubmit(); // optional: trigger refresh
+      onSubmit(response.data);
       onClose();
     } catch (err) {
       if (err.response?.status === 409) {
         setConflict(err.response.data); // store conflict for UI
       } else {
-        alert('Update failed');
+        alert(err.response?.data?.message || 'Update failed');
       }
     }
   };
